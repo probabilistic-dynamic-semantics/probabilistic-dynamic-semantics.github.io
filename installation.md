@@ -5,7 +5,7 @@ pagetitle: installation
 
 ## Installation
 
-You can install the library and open a repl by cloning [this](https://github.com/probabilistic-dynamic-semantics/pds) repository and doing:
+You can install the library and open a repl by cloning [this repository](https://github.com/probabilistic-dynamic-semantics/pds) and doing:
 
 ```
 cd pds
