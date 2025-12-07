@@ -18,6 +18,11 @@ main = hakyll $ do
     route idRoute
     compile compressCssCompiler
   match (fromList [ "index.md"
+                  , "components.md"
+                  , "writing.md"
+                  , "documentation.md"
+                  , "installation.md"
+                  , "quickstart.md"
                   ]) $ do
     route $ setExtension "html"
     compile $ do
@@ -43,6 +48,11 @@ navString currentPage
     [ ("<div class=\"navbar-collapse collapse\">\n"
        ++ "<ul class=\"nav navbar-nav\">", [])
     , ("<a href=\"index.html\">about</a>", ["about"])
+    , ("<a href=\"components.html\">components</a>", ["components"])
+    , ("<a href=\"writing.html\">writing</a>", ["writing"])
+    , ("<a href=\"documentation.html\">documentation</a>", ["documentation"])
+    , ("<a href=\"installation.html\">installation</a>", ["installation"])
+    , ("<a href=\"quickstart.html\">quick start</a>", ["quickstart"])
     , ("</ul>\n</div>", [])
     ]
 
