@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Monoid (mappend)
+import Data.String
 import Hakyll
+import Hakyll.Core.Identifier
 import Text.Pandoc
 import Text.Pandoc.Walk (walk)
 
@@ -17,48 +19,53 @@ main = hakyll $ do
   match "css/*" $ do
     route idRoute
     compile compressCssCompiler
-  match (fromList [ "index.md"
-                  , "components.md"
-                  , "writing.md"
-                  , "documentation.md"
-                  , "installation.md"
-                  , "quickstart.md"
-                  ]) $ do
+  match (fromList (
+            map (fromFilePath . (++ '.' : format) . streamline) sections
+            )) $ do
     route $ setExtension "html"
     compile $ do
       item1 <- pandocCompilerHandlingAbstract
       item2 <- loadAndApplyTemplate
                "templates/layout.html"
-               (defaultContext `mappend` navContext)
+               (defaultContext `mappend` navContext sections)
                item1
       relativizeUrls item2
   match "templates/*" $ compile templateBodyCompiler
-
+  
 
 --------------------------------------------------------------------------------
-navString :: String -> String
-navString currentPage
-  = concat $ map (\(str, labels) -> if currentPage `elem` labels
-                                   then "<li class=\"active\">"
-                                                  ++ str
-                                                  ++ "</li>"
-                                   else if null labels
-                                        then str
-                                        else "<li>" ++ str ++ "</li>")
-    [ ("<div class=\"navbar-collapse collapse\">\n"
-       ++ "<ul class=\"nav navbar-nav\">", [])
-    , ("<a href=\"index.html\">about</a>", ["about"])
-    , ("<a href=\"components.html\">components</a>", ["components"])
-    , ("<a href=\"writing.html\">writing</a>", ["writing"])
-    , ("<a href=\"documentation.html\">documentation</a>", ["documentation"])
-    , ("<a href=\"installation.html\">installation</a>", ["installation"])
-    , ("<a href=\"quickstart.html\">quick start</a>", ["quickstart"])
-    , ("</ul>\n</div>", [])
-    ]
+sections :: [String]
+sections = [ "about"
+           , "components"
+           , "writing"
+           , "documentation"
+           , "installation"
+           , "quick start"
+           ]
 
-navContext :: Context a
-navContext = functionField "nav" f
-  where f [ttl] _ = return $ navString ttl
+streamline :: String -> String
+streamline s = filter (/= ' ') $ if s == "about" then "index" else s
+
+format :: String
+format = "md"
+
+navString :: [String] -> String -> String
+navString sections currentPage
+  = concat $ map (\(str, labels) -> if currentPage `elem` labels
+                                    then "<li class=\"active\">"
+                                         ++ str
+                                         ++ "</li>"
+                                    else if null labels
+                                         then str
+                                         else "<li>" ++ str ++ "</li>")
+    (("<div class=\"navbar-collapse collapse\">\n"
+       ++ "<ul class=\"nav navbar-nav\">", [])
+    : map (\s -> ("<a href=\"" ++ streamline s ++ ".html\">" ++ s ++ "</a>", [s])) sections
+    ++ [ ("</ul>\n</div>", []) ])
+
+navContext :: [String] -> Context a
+navContext sections = functionField "nav" f
+  where f [ttl] _ = return $ navString sections ttl
 
 pandocCompilerHandlingAbstract :: Compiler (Item String)
 pandocCompilerHandlingAbstract = do
